@@ -65,7 +65,7 @@ public class GUI {
 
 
     public void printPieces(Piece[] pieces) {
-        System.out.println("Verfügbare Figuren:");
+        System.out.println("Available pieces:");
         for (int i = 0; i < pieces.length; i++) {
             if (pieces[i] != null) {
                 Position pos = pieces[i].getPosition();
@@ -77,12 +77,12 @@ public class GUI {
     }
 
     public void printLegalMoves(Position[] moves) {
-        System.out.println("Mögliche Züge:");
+        System.out.println("Possible moves:");
         for (int i = 0; i < moves.length; i++) {
             char x = (char) ('a' + moves[i].getX());
             int y = moves[i].getY() + 1;
             System.out.printf("%d: %s%s\n", i + 1, x, y);
         }
-        System.out.println("0: Zurück");
+        System.out.println("0: Back");
     }
 }

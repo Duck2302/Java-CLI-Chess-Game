@@ -28,10 +28,10 @@ public class ChessGame {
         while (true) {
             gui.printBoard(board);
             if (board.isCheckmate(currentPlayer)) {
-                System.out.println("Schachmatt! " + (currentPlayer == Color.WHITE ? "Schwarz" : "Weiß") + " gewinnt!");
+                System.out.println("Checkmate! " + (currentPlayer == Color.WHITE ? "black" : "white") + " wins!");
                 break;
             }
-            System.out.println("Am Zug: " + (currentPlayer == Color.WHITE ? "Weiß" : "Schwarz"));
+            System.out.println("Turn: " + (currentPlayer == Color.WHITE ? "white" : "black"));
 
             // Erstelle die Liste der beweglichen Figuren jedes Mal neu (x = Spalte, y = Reihe)
             List<Piece> movablePieces = new ArrayList<>();
@@ -47,7 +47,7 @@ public class ChessGame {
                 }
             }
             if (movablePieces.isEmpty()) {
-                System.out.println("Keine Figuren mit legalen Zügen verfügbar.");
+                System.out.println("No piece with legal moves available.");
                 break;
             }
 
@@ -55,7 +55,7 @@ public class ChessGame {
 
             int pieceIndex = -1;
             while (true) {
-                System.out.print("Wähle eine Figur (Nummer): ");
+                System.out.print("Choose a piece (number): ");
                 String input = scanner.nextLine();
                 try {
                     pieceIndex = Integer.parseInt(input) - 1;
@@ -63,7 +63,7 @@ public class ChessGame {
                         break;
                     }
                 } catch (Exception ignored) {}
-                System.out.println("Ungültige Auswahl. Bitte erneut versuchen.");
+                System.out.println("Invalid selection. Try again.");
             }
             // Hole die aktuelle Position und das Piece aus dem Board
             Position selectedPos = movablePositions.get(pieceIndex);
@@ -73,7 +73,7 @@ public class ChessGame {
             int moveIndex = -1;
             while (true) {
                 gui.printLegalMoves(moves);
-                System.out.print("Wähle einen Zug (Nummer, 0 für zurück): ");
+                System.out.print("Choose a move (Nnumber, 0 to go back): ");
                 String input = scanner.nextLine();
                 try {
                     moveIndex = Integer.parseInt(input) - 1;
@@ -92,7 +92,7 @@ public class ChessGame {
                         arr[to.getX()][to.getY()] = captured;
                         selected.setPosition(from);
                         if (illegal) {
-                            System.out.println("Dieser Zug setzt den eigenen König ins Schach!");
+                            System.out.println("This move would set you own king checkmate!");
                             continue;
                         }
                         // Zug ausführen
@@ -101,13 +101,13 @@ public class ChessGame {
                         break;
                     }
                 } catch (Exception ignored) {}
-                System.out.println("Ungültige Auswahl. Bitte erneut versuchen.");
+                System.out.println("Invalid selection. Try again.");
             }
             if (moveIndex == -1) continue; // zurück zur Figurenwahl
 
             // Nach dem Zug Spieler wechseln
             currentPlayer = (currentPlayer == Color.WHITE) ? Color.BLACK : Color.WHITE;
         }
-        System.out.println("Spiel beendet.");
+        System.out.println("Game finished.");
     }
 }
