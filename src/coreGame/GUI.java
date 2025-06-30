@@ -71,7 +71,7 @@ public class GUI {
                 Position pos = pieces[i].getPosition();
                 char x = (char) ('a' + pos.getX());
                 int y = pos.getY() + 1;
-                System.out.printf("%d: %s (%s%s)\n", i + 1, pieces[i].getPieceInformation(), x, y);
+                System.out.printf("%d:\t %s %s%s\n", i + 1, pieces[i].getName(), x, y);
             }
         }
     }
