@@ -81,7 +81,13 @@ public class GUI {
         for (int i = 0; i < moves.length; i++) {
             char x = (char) ('a' + moves[i].getX());
             int y = moves[i].getY() + 1;
-            System.out.printf("%d: %s%s\n", i + 1, x, y);
+            String extra = "";
+            // Rochade markieren: kurze (g1/g8), lange (c1/c8)
+            if ((moves[i].getX() == 6 || moves[i].getX() == 2) &&
+                (moves[i].getY() == 0 || moves[i].getY() == 7)) {
+                extra = " (castle)";
+            }
+            System.out.printf("%d: %s%s%s\n", i + 1, x, y, extra);
         }
         System.out.println("0: Back");
     }

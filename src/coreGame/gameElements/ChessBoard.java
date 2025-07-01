@@ -110,6 +110,15 @@ public class ChessBoard {
             for (int j = 0; j < 8; j++) {
                 Piece p = arr[i][j];
                 if (p != null && p.getColor() != color) {
+                    // Sonderfall: König prüft nur angrenzende Felder
+                    if (p instanceof King) {
+                        int dx = Math.abs(p.getPosition().getX() - kingPos.getX());
+                        int dy = Math.abs(p.getPosition().getY() - kingPos.getY());
+                        if ((dx <= 1 && dy <= 1) && (dx + dy != 0)) {
+                            return true;
+                        }
+                        continue;
+                    }
                     for (Position pos : p.getLegalMoves(this)) {
                         if (pos.getX() == kingPos.getX() && pos.getY() == kingPos.getY()) {
                             return true;

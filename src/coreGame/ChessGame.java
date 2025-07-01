@@ -110,16 +110,44 @@ public class ChessGame {
                         arr[from.getX()][from.getY()] = null;
                         arr[to.getX()][to.getY()] = selected;
                         selected.setPosition(to);
-                        if (isEnPassant) {
-                            int capturedY = from.getY();
-                            Piece epPawn = arr[to.getX()][capturedY];
-                            arr[to.getX()][capturedY] = null;
+
+                        // Rochade simulieren
+                        boolean isCastling = selected instanceof coreGame.gameElements.pieces.King && Math.abs(to.getX() - from.getX()) == 2;
+                        Piece rook = null;
+                        Position rookFrom = null, rookTo = null;
+                        if (isCastling) {
+                            int y = from.getY();
+                            if (to.getX() == 6) { // kurze Rochade
+                                rook = arr[7][y];
+                                rookFrom = new Position(7, y);
+                                rookTo = new Position(5, y);
+                                arr[7][y] = null;
+                                arr[5][y] = rook;
+                                if (rook != null) rook.setPosition(rookTo);
+                            } else if (to.getX() == 2) { // lange Rochade
+                                rook = arr[0][y];
+                                rookFrom = new Position(0, y);
+                                rookTo = new Position(3, y);
+                                arr[0][y] = null;
+                                arr[3][y] = rook;
+                                if (rook != null) rook.setPosition(rookTo);
+                            }
                         }
+
                         boolean illegal = board.isKingInCheck(currentPlayer);
+
                         // Rückgängig machen
                         arr[from.getX()][from.getY()] = selected;
                         arr[to.getX()][to.getY()] = captured;
                         selected.setPosition(from);
+
+                        // Rochade rückgängig machen
+                        if (isCastling && rook != null && rookFrom != null && rookTo != null) {
+                            arr[rookFrom.getX()][rookFrom.getY()] = rook;
+                            arr[rookTo.getX()][rookTo.getY()] = null;
+                            rook.setPosition(rookFrom);
+                        }
+
                         if (isEnPassant) {
                             int capturedY = from.getY();
                             arr[to.getX()][capturedY] = captured;

@@ -40,8 +40,43 @@ public class Move {
         int toX = to.getX();
         int toY = to.getY();
 
+        // Rochade
+        if (movedPiece instanceof coreGame.gameElements.pieces.King && Math.abs(toX - fromX) == 2) {
+            // kurze Rochade
+            if (toX == 6) {
+                Piece rook = arr[7][fromY];
+                arr[7][fromY] = null;
+                arr[5][fromY] = rook;
+                rook.setPosition(new Position(5, fromY));
+                if (rook instanceof coreGame.gameElements.pieces.Rook) {
+                    ((coreGame.gameElements.pieces.Rook)rook).setHasMoved(true);
+                }
+            }
+            // lange Rochade
+            if (toX == 2) {
+                Piece rook = arr[0][fromY];
+                arr[0][fromY] = null;
+                arr[3][fromY] = rook;
+                rook.setPosition(new Position(3, fromY));
+                if (rook instanceof coreGame.gameElements.pieces.Rook) {
+                    ((coreGame.gameElements.pieces.Rook)rook).setHasMoved(true);
+                }
+            }
+            if (movedPiece instanceof coreGame.gameElements.pieces.King) {
+                ((coreGame.gameElements.pieces.King)movedPiece).setHasMoved(true);
+            }
+        }
+
         arr[fromX][fromY] = null;
         arr[toX][toY] = movedPiece;
         movedPiece.setPosition(to);
+
+        // Setze hasMoved für König und Turm
+        if (movedPiece instanceof coreGame.gameElements.pieces.King) {
+            ((coreGame.gameElements.pieces.King)movedPiece).setHasMoved(true);
+        }
+        if (movedPiece instanceof coreGame.gameElements.pieces.Rook) {
+            ((coreGame.gameElements.pieces.Rook)movedPiece).setHasMoved(true);
+        }
     }
 }

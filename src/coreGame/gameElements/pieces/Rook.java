@@ -4,8 +4,18 @@ import coreGame.gameElements.ChessBoard;
 import coreGame.gameElements.Position;
 
 public class Rook extends Piece {
+    private boolean hasMoved = false;
+
     public Rook(Position position, Color color) {
         super(position, color, "Rook");
+    }
+
+    public boolean hasMoved() {
+        return hasMoved;
+    }
+
+    public void setHasMoved(boolean moved) {
+        this.hasMoved = moved;
     }
 
     @Override
