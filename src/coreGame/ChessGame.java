@@ -19,12 +19,13 @@ public class ChessGame {
     private ChessBoard board;
     private GUI gui;
     private Color currentPlayer;
+    private Move lastMove; // Für En Passant
 
     public ChessGame() {
         board = new ChessBoard();
-        // Standard: Konsolenmodus. Für Lanterna: gui = new GUI(true);
-        gui = new GUI(); // oder: gui = new GUI(true);
+        gui = new GUI();
         currentPlayer = Color.WHITE;
+        lastMove = null;
     }
 
     public void start() {
@@ -72,7 +73,12 @@ public class ChessGame {
             // Hole die aktuelle Position und das Piece aus dem Board
             Position selectedPos = movablePositions.get(pieceIndex);
             Piece selected = arr[selectedPos.getX()][selectedPos.getY()];
-            Position[] moves = selected.getLegalMoves(board);
+            Position[] moves;
+            if (selected instanceof Pawn) {
+                moves = ((Pawn)selected).getLegalMoves(board, lastMove); // Übergebe letzten Zug
+            } else {
+                moves = selected.getLegalMoves(board);
+            }
 
             int moveIndex = -1;
             while (true) {
@@ -83,18 +89,41 @@ public class ChessGame {
                     moveIndex = Integer.parseInt(input) - 1;
                     if (moveIndex == -1) break; // zurück
                     if (moveIndex >= 0 && moveIndex < moves.length) {
-                        // Nutze IMMER die gespeicherte Startposition, nicht selected.getPosition()
                         Position from = new Position(selectedPos.getX(), selectedPos.getY());
                         Position to = moves[moveIndex];
+
+                        // Prüfe auf En Passant
+                        boolean isEnPassant = false;
                         Piece captured = arr[to.getX()][to.getY()];
+                        if (selected instanceof Pawn && lastMove != null) {
+                            int dx = to.getX() - from.getX();
+                            int dy = to.getY() - from.getY();
+                            if (Math.abs(dx) == 1 && dy == ((selected.getColor() == Color.WHITE) ? 1 : -1)
+                                    && arr[to.getX()][to.getY()] == null) {
+                                // En Passant erkannt
+                                isEnPassant = true;
+                                int capturedY = from.getY();
+                                captured = arr[to.getX()][capturedY];
+                            }
+                        }
+
                         arr[from.getX()][from.getY()] = null;
                         arr[to.getX()][to.getY()] = selected;
                         selected.setPosition(to);
+                        if (isEnPassant) {
+                            int capturedY = from.getY();
+                            Piece epPawn = arr[to.getX()][capturedY];
+                            arr[to.getX()][capturedY] = null;
+                        }
                         boolean illegal = board.isKingInCheck(currentPlayer);
                         // Rückgängig machen
                         arr[from.getX()][from.getY()] = selected;
                         arr[to.getX()][to.getY()] = captured;
                         selected.setPosition(from);
+                        if (isEnPassant) {
+                            int capturedY = from.getY();
+                            arr[to.getX()][capturedY] = captured;
+                        }
                         if (illegal) {
                             System.out.println("This move would set you own king checkmate!");
                             continue;
@@ -102,6 +131,14 @@ public class ChessGame {
                         // Zug ausführen
                         Move move = new Move(from, to, selected, captured);
                         board.makeMove(move);
+
+                        // En Passant schlagen
+                        if (isEnPassant) {
+                            int capturedY = from.getY();
+                            arr[to.getX()][capturedY] = null;
+                        }
+
+                        lastMove = move; // Letzten Zug speichern
 
                         // Prüfe auf Bauernumwandlung
                         if (selected instanceof Pawn && isPawnPromotion(to, selected.getColor())) {

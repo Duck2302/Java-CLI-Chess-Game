@@ -8,6 +8,10 @@ public abstract  class Piece {
     private Position position;
     protected String name;
 
+    /**
+     * Gibt alle legalen Züge zurück. Für Bauern prüft diese Methode KEIN En Passant.
+     * Für En Passant siehe Pawn#getLegalMoves(ChessBoard, Move).
+     */
     abstract public Position[] getLegalMoves(ChessBoard chessBoard);
 
     public Piece(Position position, Color color, String name) {
