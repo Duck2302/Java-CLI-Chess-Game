@@ -83,7 +83,7 @@ public class ChessGame {
             int moveIndex = -1;
             while (true) {
                 gui.printLegalMoves(moves);
-                System.out.print("Choose a move (Nnumber, 0 to go back): ");
+                System.out.print("Choose a move (number, 0 to go back): ");
                 String input = scanner.nextLine();
                 try {
                     moveIndex = Integer.parseInt(input) - 1;
