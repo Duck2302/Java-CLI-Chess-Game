@@ -1,11 +1,15 @@
 package coreGame;
 
-
 import coreGame.gameElements.ChessBoard;
 import coreGame.gameElements.pieces.Color;
 import coreGame.gameElements.Move;
 import coreGame.gameElements.Position;
 import coreGame.gameElements.pieces.Piece;
+import coreGame.gameElements.pieces.Pawn;
+import coreGame.gameElements.pieces.Queen;
+import coreGame.gameElements.pieces.Rook;
+import coreGame.gameElements.pieces.Bishop;
+import coreGame.gameElements.pieces.Knight;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +102,15 @@ public class ChessGame {
                         // Zug ausführen
                         Move move = new Move(from, to, selected, captured);
                         board.makeMove(move);
+
+                        // Prüfe auf Bauernumwandlung
+                        if (selected instanceof Pawn && isPawnPromotion(to, selected.getColor())) {
+                            Piece promotedPiece = choosePawnPromotion(scanner, selected.getColor());
+                            promotedPiece.setPosition(to);
+                            System.out.println(to.toString());
+                            arr[to.getX()][to.getY()] = promotedPiece;
+                        }
+
                         break;
                     }
                 } catch (Exception ignored) {}
@@ -109,5 +122,40 @@ public class ChessGame {
             currentPlayer = (currentPlayer == Color.WHITE) ? Color.BLACK : Color.WHITE;
         }
         System.out.println("Game finished.");
+    }
+
+    private boolean isPawnPromotion(Position position, Color color) {
+        return (color == Color.WHITE && position.getY() == 7) ||
+                (color == Color.BLACK && position.getY() == 0);
+    }
+
+    private Piece choosePawnPromotion(Scanner scanner, Color color) {
+        System.out.println("Pawn promotion! Choose a piece:");
+        System.out.println("1. Queen");
+        System.out.println("2. Rook");
+        System.out.println("3. Bishop");
+        System.out.println("4. Knight");
+
+        while (true) {
+            System.out.print("Choose (1-4): ");
+            String input = scanner.nextLine();
+            try {
+                int choice = Integer.parseInt(input);
+                switch (choice) {
+                    case 1:
+                        return new Queen(null, color);
+                    case 2:
+                        return new Rook( null, color);
+                    case 3:
+                        return new Bishop( null, color);
+                    case 4:
+                        return new Knight( null, color);
+                    default:
+                        System.out.println("Invalid choice. Please choose 1-4.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number.");
+            }
+        }
     }
 }
