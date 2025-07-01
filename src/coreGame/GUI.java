@@ -90,7 +90,7 @@ public class GUI {
                 // Dazu benötigen wir das aktuelle Piece und die Startposition
                 // Diese Information muss an die Methode übergeben werden
                 // Daher: Methode um Piece und From-Position erweitern
-                extra = " (castle)"; // Platzhalter, wird gleich verbessert
+                extra = " (special move)"; // Platzhalter, wird gleich verbessert
             }
             System.out.printf("%d: %s%s%s\n", i + 1, x, y, extra);
         }
