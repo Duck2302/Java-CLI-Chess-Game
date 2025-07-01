@@ -57,19 +57,7 @@ public class ChessGame {
             }
 
             gui.printPieces(movablePieces.toArray(new Piece[0]));
-
-            int pieceIndex = -1;
-            while (true) {
-                System.out.print("Choose a piece (number): ");
-                String input = scanner.nextLine();
-                try {
-                    pieceIndex = Integer.parseInt(input) - 1;
-                    if (pieceIndex >= 0 && pieceIndex < movablePieces.size()) {
-                        break;
-                    }
-                } catch (Exception ignored) {}
-                System.out.println("Invalid selection. Try again.");
-            }
+            int pieceIndex = gui.askForPieceSelection(movablePieces.size());
             // Hole die aktuelle Position und das Piece aus dem Board
             Position selectedPos = movablePositions.get(pieceIndex);
             Piece selected = arr[selectedPos.getX()][selectedPos.getY()];
@@ -79,109 +67,45 @@ public class ChessGame {
             } else {
                 moves = selected.getLegalMoves(board);
             }
-
-            int moveIndex = -1;
-            while (true) {
-                gui.printLegalMoves(moves);
-                System.out.print("Choose a move (number, 0 to go back): ");
-                String input = scanner.nextLine();
-                try {
-                    moveIndex = Integer.parseInt(input) - 1;
-                    if (moveIndex == -1) break; // zurück
-                    if (moveIndex >= 0 && moveIndex < moves.length) {
-                        Position from = new Position(selectedPos.getX(), selectedPos.getY());
-                        Position to = moves[moveIndex];
-
-                        // Prüfe auf En Passant
-                        boolean isEnPassant = false;
-                        Piece captured = arr[to.getX()][to.getY()];
-                        if (selected instanceof Pawn && lastMove != null) {
-                            int dx = to.getX() - from.getX();
-                            int dy = to.getY() - from.getY();
-                            if (Math.abs(dx) == 1 && dy == ((selected.getColor() == Color.WHITE) ? 1 : -1)
-                                    && arr[to.getX()][to.getY()] == null) {
-                                // En Passant erkannt
-                                isEnPassant = true;
-                                int capturedY = from.getY();
-                                captured = arr[to.getX()][capturedY];
-                            }
-                        }
-
-                        arr[from.getX()][from.getY()] = null;
-                        arr[to.getX()][to.getY()] = selected;
-                        selected.setPosition(to);
-
-                        // Rochade simulieren
-                        boolean isCastling = selected instanceof coreGame.gameElements.pieces.King && Math.abs(to.getX() - from.getX()) == 2;
-                        Piece rook = null;
-                        Position rookFrom = null, rookTo = null;
-                        if (isCastling) {
-                            int y = from.getY();
-                            if (to.getX() == 6) { // kurze Rochade
-                                rook = arr[7][y];
-                                rookFrom = new Position(7, y);
-                                rookTo = new Position(5, y);
-                                arr[7][y] = null;
-                                arr[5][y] = rook;
-                                if (rook != null) rook.setPosition(rookTo);
-                            } else if (to.getX() == 2) { // lange Rochade
-                                rook = arr[0][y];
-                                rookFrom = new Position(0, y);
-                                rookTo = new Position(3, y);
-                                arr[0][y] = null;
-                                arr[3][y] = rook;
-                                if (rook != null) rook.setPosition(rookTo);
-                            }
-                        }
-
-                        boolean illegal = board.isKingInCheck(currentPlayer);
-
-                        // Rückgängig machen
-                        arr[from.getX()][from.getY()] = selected;
-                        arr[to.getX()][to.getY()] = captured;
-                        selected.setPosition(from);
-
-                        // Rochade rückgängig machen
-                        if (isCastling && rook != null && rookFrom != null && rookTo != null) {
-                            arr[rookFrom.getX()][rookFrom.getY()] = rook;
-                            arr[rookTo.getX()][rookTo.getY()] = null;
-                            rook.setPosition(rookFrom);
-                        }
-
-                        if (isEnPassant) {
-                            int capturedY = from.getY();
-                            arr[to.getX()][capturedY] = captured;
-                        }
-                        if (illegal) {
-                            System.out.println("This move would set you own king checkmate!");
-                            continue;
-                        }
-                        // Zug ausführen
-                        Move move = new Move(from, to, selected, captured);
-                        board.makeMove(move);
-
-                        // En Passant schlagen
-                        if (isEnPassant) {
-                            int capturedY = from.getY();
-                            arr[to.getX()][capturedY] = null;
-                        }
-
-                        lastMove = move; // Letzten Zug speichern
-
-                        // Prüfe auf Bauernumwandlung
-                        if (selected instanceof Pawn && isPawnPromotion(to, selected.getColor())) {
-                            Piece promotedPiece = choosePawnPromotion(scanner, selected.getColor());
-                            promotedPiece.setPosition(to);
-                            System.out.println(to.toString());
-                            arr[to.getX()][to.getY()] = promotedPiece;
-                        }
-
-                        break;
-                    }
-                } catch (Exception ignored) {}
-                System.out.println("Invalid selection. Try again.");
-            }
+            gui.printLegalMoves(moves);
+            int moveIndex = gui.askForMoveSelection(moves.length);
             if (moveIndex == -1) continue; // zurück zur Figurenwahl
+            Position from = new Position(selectedPos.getX(), selectedPos.getY());
+            Position to = moves[moveIndex];
+
+            boolean isEnPassant = EnPassantHandler.isEnPassant(selected, from, to, lastMove, arr);
+            Piece captured = isEnPassant ? arr[to.getX()][from.getY()] : arr[to.getX()][to.getY()];
+            boolean isCastling = CastlingHandler.isCastlingMove(selected, from, to);
+
+            Move move = new Move(from, to, selected, captured);
+            if (!MoveValidator.isLegalMove(board, move, currentPlayer, lastMove)) {
+                gui.printMessage("This move would set your own king in check!");
+                continue;
+            }
+
+            // Zug ausführen
+            arr[from.getX()][from.getY()] = null;
+            arr[to.getX()][to.getY()] = selected;
+            selected.setPosition(to);
+
+            if (isCastling) {
+                CastlingHandler.performCastling(arr, from, to);
+            }
+
+            if (isEnPassant) {
+                EnPassantHandler.performEnPassant(arr, from, to);
+            }
+
+            lastMove = move; // Letzten Zug speichern
+
+            // Prüfe auf Bauernumwandlung
+            if (selected instanceof Pawn && PromotionHandler.isPromotion(to, selected.getColor())) {
+                int choice = gui.askForPromotionChoice();
+                Piece promotedPiece = PromotionHandler.promotePawn(selected.getColor(), choice);
+                promotedPiece.setPosition(to);
+                arr[to.getX()][to.getY()] = promotedPiece;
+            }
+
 
             // Nach dem Zug Spieler wechseln
             currentPlayer = (currentPlayer == Color.WHITE) ? Color.BLACK : Color.WHITE;
