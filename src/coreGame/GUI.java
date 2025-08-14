@@ -11,12 +11,44 @@ import java.util.Scanner;
 
 public class GUI {
     private final Map<String, String> pieceSymbols;
-
+    private final Map<String, String> asciiPieceSymbols;
+    private final boolean useUnicode;
 
     public GUI() {
+        this.useUnicode = supportsUnicode();
         this.pieceSymbols = createPieceSymbolMap();
+        this.asciiPieceSymbols = createASCIIPieceSymbolMap();
     }
 
+    private boolean supportsUnicode() {
+        // Prüfe ob die Konsole UTF-8 unterstützt
+        String os = System.getProperty("os.name").toLowerCase();
+        String encoding = System.getProperty("file.encoding");
+
+        // Windows PowerShell hat oft Probleme mit Unicode
+        if (os.contains("windows")) {
+            return encoding != null && encoding.toLowerCase().contains("utf");
+        }
+        return true;
+    }
+
+    private Map<String, String> createASCIIPieceSymbolMap() {
+        Map<String, String> map = new HashMap<>();
+        // ASCII-Alternative für bessere Kompatibilität
+        map.put("King_BLACK", "K");
+        map.put("Queen_BLACK", "Q");
+        map.put("Rook_BLACK", "R");
+        map.put("Bishop_BLACK", "B");
+        map.put("Knight_BLACK", "N");
+        map.put("Pawn_BLACK", "P");
+        map.put("King_WHITE", "k");
+        map.put("Queen_WHITE", "q");
+        map.put("Rook_WHITE", "r");
+        map.put("Bishop_WHITE", "b");
+        map.put("Knight_WHITE", "n");
+        map.put("Pawn_WHITE", "p");
+        return map;
+    }
 
     private Map<String, String> createPieceSymbolMap() {
         Map<String, String> map = new HashMap<>();
@@ -39,27 +71,59 @@ public class GUI {
     public void printBoard(ChessBoard board) {
         Piece[][] arr = board.getBoardArray();
         System.out.println();
+
+        // Zeige Encoding-Information an
+        if (!useUnicode) {
+            System.out.println("(Using ASCII mode, for a better experience use a terminal with unicode-support - Uppercase=Black, Lowercase=White)");
+            System.out.println("Piece Legend: K/k=King, Q/q=Queen, R/r=Rook, B/b=Bishop, N/n=(K)night, P/p=Pawn");
+            System.out.println();
+        }
+
         for (int y = 7; y >= 0; y--) {
             System.out.print((y + 1) + " ");
             for (int x = 0; x < 8; x++) {
                 Piece p = arr[x][y];
                 if (p != null) {
                     String symbolKey = p.getName() + "_" + p.getColor().name();
-                    String symbol = pieceSymbols.getOrDefault(symbolKey, p.getName());
-                    System.out.print("\t" + symbol);
-                } else {
-                    if ((x + y) % 2 == 0) {
-                        System.out.print("\t □ ");
+                    String symbol;
+                    if (useUnicode) {
+                        symbol = pieceSymbols.getOrDefault(symbolKey, p.getName());
+                        System.out.print("\t" + symbol);
                     } else {
-                        System.out.print("\t ■ ");
+                        symbol = asciiPieceSymbols.getOrDefault(symbolKey, p.getName());
+                        System.out.print("  " + symbol + " ");
+                    }
+                } else {
+                    if (useUnicode) {
+                        if ((x + y) % 2 == 0) {
+                            System.out.print("\t □ ");
+                        } else {
+                            System.out.print("\t ■ ");
+                        }
+                    } else {
+                        // ASCII-Modus: verwende feste Leerzeichen für gleichmäßige Ausrichtung
+                        if ((x + y) % 2 == 0) {
+                            System.out.print("  . ");
+                        } else {
+                            System.out.print("  # ");
+                        }
                     }
                 }
             }
             System.out.println();
         }
-        System.out.print("  ");
-        for (char c = 'a'; c <= 'h'; c++) {
-            System.out.print("\t " + c + " ");
+
+        // Spaltenbezeichnungen
+        if (useUnicode) {
+            System.out.print("  ");
+            for (char c = 'a'; c <= 'h'; c++) {
+                System.out.print("\t " + c + " ");
+            }
+        } else {
+            System.out.print("  ");
+            for (char c = 'a'; c <= 'h'; c++) {
+                System.out.print("  " + c + " ");
+            }
         }
         System.out.println("\n");
     }
